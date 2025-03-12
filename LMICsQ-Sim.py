@@ -48,7 +48,7 @@ def degrade_batch(input_dir, output_dir):
 def main():
     parser = argparse.ArgumentParser(description="Degrade MRI scans to simulate low-quality LMIC images.")
     parser.add_argument('-i', '--input', required=True, help="Input NIfTI file or directory")
-    parser.add_argument('-o', '--output', required=True, help="Output file path (single) or directory (batch)")
+    parser.add_argument('-o', '--output', type=str, default="outputs/", required=True, help="Output file path (single) or directory (batch)")
     parser.add_argument('--batch', action='store_true', help="Process as batch")
     
     args = parser.parse_args()

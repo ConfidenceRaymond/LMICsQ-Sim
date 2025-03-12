@@ -1,28 +1,32 @@
-import torch
+import torch, os
 import torchio as tio
+import nibabel as nib
 import numpy as np
 import json
 from torchio.utils import history_collate
 
 # Custom Transforms
 class RandomCrop(tio.Transform):
-    def __init__(self, crop_percentage_range=(0.2, 0.5), min_fov_percentage=0.5):
+    def __init__(self, crop_percentage_range=(0.2, 0.5), min_fov_percentage=0.5, p=0.1):
         super().__init__()
         self.crop_percentage_range = crop_percentage_range
         self.min_fov_percentage = min_fov_percentage
+        self.p = p
 
     def apply_transform(self, subject):
-        d, h, w = subject.get_first_image().shape[1:]
-        min_dim = min(d, h, w)
-        max_crop_percentage = 1.0 - self.min_fov_percentage
-        crop_percentage = np.random.uniform(max(self.crop_percentage_range[0], 0.0),
-                                           min(self.crop_percentage_range[1], max_crop_percentage))
-        crop_total = int(min_dim * crop_percentage)
-        crop_total = crop_total if crop_total % 2 == 0 else crop_total + 1
-        d_front = d_back = min(crop_total // 2, d // 2)
-        h_front = h_back = min(crop_total // 2, h // 2)
-        w_front = w_back = min(crop_total // 2, w // 2)
-        return tio.Crop((d_front, d_back, h_front, h_back, w_front, w_back))(subject)
+        if np.random.rand() < self.p:
+            d, h, w = subject.get_first_image().shape[1:]
+            min_dim = min(d, h, w)
+            max_crop_percentage = 1.0 - self.min_fov_percentage
+            crop_percentage = np.random.uniform(max(self.crop_percentage_range[0], 0.0),
+                                            min(self.crop_percentage_range[1], max_crop_percentage))
+            crop_total = int(min_dim * crop_percentage)
+            crop_total = crop_total if crop_total % 2 == 0 else crop_total + 1
+            d_front = d_back = min(crop_total // 2, d // 2)
+            h_front = h_back = min(crop_total // 2, h // 2)
+            w_front = w_back = min(crop_total // 2, w // 2)
+            return tio.Crop((d_front, d_back, h_front, h_back, w_front, w_back))(subject)
+        return subject
 
 class RandomPatchDegradation(tio.Transform):
     def __init__(self, num_patches=5, intensity_range=(0.1, 0.3)):
@@ -81,7 +85,7 @@ def get_degradation_pipeline():
         }, p=0.5),
         RandomCrop(p=0.1)  # Uniform crop for limited FOV
         #RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)): 1
-    ], log_history=True)
+    ])
 
 def get_individual_transforms():
     return {
@@ -98,23 +102,35 @@ def get_individual_transforms():
     }
 
 def save_transform_history(subjects, output_json='transform_history.json'):
-    history = history_collate(subjects)
+    history = subjects.get_composed_history()
+    print(history)
     with open(output_json, 'w') as f:
         json.dump(history, f, indent=4)
     return output_json
 
 def degrade_mri(input_path, output_path, pipeline=None):
+    
+    os.makedirs(output_path, exist_ok=True)
+    
     try:
-        mri = tio.ScalarImage(input_path)
+        nifti_img = nib.load(input_path)
+        original_data = nifti_img.get_fdata()
+        mri = tio.Subject(
+            img = tio.ScalarImage(tensor=original_data[..., np.newaxis]),
+        )
+        
     except FileNotFoundError:
         print(f"Error: File not found at {input_path}. Please ensure the path is correct.")
         exit()  # Exit if file is not found.
     except Exception as e:
         print(f"Error loading NIfTI file: {e}")
         exit()
+        
     pipeline = pipeline or get_degradation_pipeline()
     degraded_mri = pipeline(mri)
-    degraded_mri.save(output_path)
+    #mri = tio.SubjectsDataset(mri, transform=get_degradation_pipeline)
     history_path = output_path.replace('.nii', '_history.json')
-    save_transform_history([degraded_mri], history_path)
+    save_transform_history(mri, history_path)
+    degraded_mri.save(output_path)
+    
     return degraded_mri, history_path
