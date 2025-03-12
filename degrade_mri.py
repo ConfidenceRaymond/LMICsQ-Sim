@@ -80,7 +80,7 @@ def get_individual_transforms():
         "Blur": tio.RandomBlur(std=0.5),
         "Motion": tio.RandomMotion(degrees=5, translation=5, num_transforms=2),
         "Spike": tio.RandomSpike(num_spikes=10, intensity=0.2),
-        "Ghosting": tio.RandomGhosting(intensity=0.2, axis=2),
+        "Ghosting": tio.RandomGhosting(intensity=0.2),
         "Crop": RandomCrop(),
         "PatchDegradation": RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3))
     }
