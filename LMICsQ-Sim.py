@@ -26,6 +26,7 @@ def degrade_single(input_path, output_path):
     print(f"Transform history saved to {history_path}")
 
 def degrade_batch(input_dir, output_dir):
+    
     input_files = glob.glob(os.path.join(input_dir, '*.nii')) + glob.glob(os.path.join(input_dir, '*.nii.gz'))
     if not input_files:
         raise FileNotFoundError(f"No NIfTI files found in {input_dir}")
