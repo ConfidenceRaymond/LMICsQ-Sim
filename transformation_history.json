@@ -1,5 +1,0 @@
-[
-    "Resample(target=[1.421875 1.703125 1.421875], image_interpolation=linear, label_interpolation=nearest, pre_affine_name=None, scalars_only=False)",
-    "Affine(scales=(tensor(0.9656, dtype=torch.float64), tensor(0.9511, dtype=torch.float64), tensor(1.0783, dtype=torch.float64)), degrees=(tensor(-5.2414, dtype=torch.float64), tensor(6.8016, dtype=torch.float64), tensor(3.2885, dtype=torch.float64)), translation=(tensor(0., dtype=torch.float64), tensor(0., dtype=torch.float64), tensor(0., dtype=torch.float64)), center=image, default_pad_value=minimum, image_interpolation=linear, label_interpolation=nearest, check_shape=True)",
-    "Flip(axes=(1,))"
-]

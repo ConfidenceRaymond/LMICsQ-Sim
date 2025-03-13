@@ -33,7 +33,6 @@ def degrade_batch(input_dir, output_dir):
     
     os.makedirs(output_dir, exist_ok=True)
     pipeline = get_degradation_pipeline()
-    degraded_mris = []
     for input_path in input_files:
         filename = os.path.basename(input_path)
         output_path = os.path.join(output_dir, f"degraded_{filename}")
@@ -47,7 +46,7 @@ def degrade_batch(input_dir, output_dir):
 def main():
     parser = argparse.ArgumentParser(description="Degrade MRI scans to simulate low-quality LMIC images.")
     parser.add_argument('-i', '--input', required=True, help="Input NIfTI file or directory")
-    parser.add_argument('-o', '--output', type=str, default="outputs/", required=True, help="Output file path (single) or directory (batch)")
+    parser.add_argument('-o', '--output', type=str, default="/outputs/", required=True, help="Output file path (single) or directory (batch)")
     parser.add_argument('--batch', action='store_true', help="Process as batch")
     
     args = parser.parse_args()

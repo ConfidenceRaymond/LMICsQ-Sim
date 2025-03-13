@@ -2,16 +2,18 @@ import torch, os
 import torchio as tio
 import nibabel as nib
 import numpy as np
+from pathlib import Path
 import json
 from torchio.utils import history_collate
 
 # Custom Transforms
 class RandomCrop(tio.Transform):
-    def __init__(self, crop_percentage_range=(0.2, 0.5), min_fov_percentage=0.5, p=0.1):
-        super().__init__()
+    def __init__(self, crop_percentage_range=(0.2, 0.5), min_fov_percentage=0.5, p=0.1, **kwargs):
+        super().__init__(**kwargs)
         self.crop_percentage_range = crop_percentage_range
         self.min_fov_percentage = min_fov_percentage
         self.p = p
+        self.args_names = ('crop_percentage_range', 'min_fov_percentage')  # For torchio history
 
     def apply_transform(self, subject):
         if np.random.rand() < self.p:
@@ -25,12 +27,17 @@ class RandomCrop(tio.Transform):
             d_front = d_back = min(crop_total // 2, d // 2)
             h_front = h_back = min(crop_total // 2, h // 2)
             w_front = w_back = min(crop_total // 2, w // 2)
-            return tio.Crop((d_front, d_back, h_front, h_back, w_front, w_back))(subject)
+            cropping = (d_front, d_back, h_front, h_back, w_front, w_back)
+            
+            return tio.Crop(cropping)(subject)
         return subject
+            
+    
+    
 
 class RandomPatchDegradation(tio.Transform):
-    def __init__(self, num_patches=5, intensity_range=(0.1, 0.3)):
-        super().__init__()
+    def __init__(self, num_patches=5, intensity_range=(0.1, 0.3), **kwargs):
+        super().__init__(**kwargs)
         self.num_patches, self.intensity_range = num_patches, intensity_range
 
     def apply_transform(self, subject):
@@ -44,13 +51,13 @@ class RandomPatchDegradation(tio.Transform):
             h_end = min(h_start + patch_size, h)
             w_end = min(w_start + patch_size, w)
             data[:, d_start:d_end, h_start:h_end, w_start:w_end] += intensity
-        data = torch.clamp(data, 0, 1)
+        #data = torch.clamp(data, 0, 1)
         subject.get_first_image().data = data
         return subject
 
 class SparseSpatialTransform(tio.Transform):
-    def __init__(self, p_apply=0.75, max_effects=3, weights=(0.3, 0.5, 0.2)):
-        super().__init__()
+    def __init__(self, p_apply=0.75, max_effects=3, weights=(0.3, 0.5, 0.2), **kwargs):
+        super().__init__(**kwargs)
         self.p_apply, self.max_effects = p_apply, min(max_effects, 3)
         self.weights = weights / np.sum(weights)
         self.effects = [
@@ -71,6 +78,12 @@ class RandomResample(tio.Transform):
     def apply_transform(self, subject):
         voxel_size = np.random.choice([2, 3])
         return tio.Resample(voxel_size)(subject)
+    
+## Explicitly register costum tio transforms
+tio.transforms.SparseSpatialTransform = SparseSpatialTransform
+tio.transforms.__dict__["SparseSpatialTransform"] = SparseSpatialTransform
+tio.transforms.RandomCrop = RandomCrop
+tio.transforms.__dict__["RandomCrop"] = RandomCrop
 
 # Core Functions
 def get_degradation_pipeline():
@@ -79,17 +92,21 @@ def get_degradation_pipeline():
         SparseSpatialTransform(p_apply=0.6, max_effects=3, weights=(0.2, 0.5, 0.3)),  ## RandomNoise -0.2, RandomAnisotropy -0.5 RandomBiasField - 0.2
         tio.RandomBlur(std=(lambda: np.random.uniform(0.3, 0.7))(), p=0.3),
         tio.OneOf({
-            tio.RandomMotion(degrees=(lambda: np.random.uniform(3, 7))(), translation=(lambda: np.random.uniform(3, 7))(), num_transforms=2): 1,
-            tio.RandomSpike(num_spikes=(lambda: np.random.randint(5, 15))(), intensity=(lambda: np.random.uniform(0.1, 0.3))()): 2,
+            tio.RandomMotion(degrees=(lambda: np.random.uniform(3, 7))(), translation=(lambda: np.random.uniform(3, 7))(), num_transforms=2): 2,
+            tio.RandomSpike(num_spikes=(lambda: np.random.randint(5, 15))(), intensity=(lambda: np.random.uniform(0.1, 0.3))()): 1,
             tio.RandomGhosting(intensity=(lambda: np.random.uniform(0.1, 0.3))(), axes=(lambda: np.random.randint(0, 3))()): 2
         }, p=0.5),
         RandomCrop(p=0.1)  # Uniform crop for limited FOV
         #RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)): 1
     ])
 
+
+
+
 def get_individual_transforms():
     return {
         "Resample": RandomResample(),
+        "SparseSpatial": SparseSpatialTransform(p_apply=0.6, max_effects=3, weights=(0.2, 0.5, 0.3)),
         "Noise": tio.RandomNoise(mean=0, std=(lambda: np.random.uniform(0.05, 0.15))()),
         "Anisotropy": tio.RandomAnisotropy(axes=(0, 1, 2), downsampling=(2, 5)),
         "BiasField": tio.RandomBiasField(coefficients=(lambda: np.random.uniform(0.3, 0.7))()),
@@ -97,8 +114,8 @@ def get_individual_transforms():
         "Motion": tio.RandomMotion(degrees=(lambda: np.random.uniform(3, 7))(), translation=(lambda: np.random.uniform(3, 7))(), num_transforms=2),
         "Spike": tio.RandomSpike(num_spikes=(lambda: np.random.randint(5, 15))(), intensity=(lambda: np.random.uniform(0.1, 0.3))()),
         "Ghosting": tio.RandomGhosting(intensity=(lambda: np.random.uniform(0.1, 0.3))(), axes=(lambda: np.random.randint(0, 3))()),
-        "Crop": RandomCrop(),  # Uniform crop for limited FOV
-        "PatchDegradation": RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3))
+        "Crop": RandomCrop(p=1)  # Uniform crop for limited FOV
+        #"PatchDegradation": RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3))
     }
 
 def save_transform_history(subjects, output_json='transform_history.json'):
@@ -108,16 +125,50 @@ def save_transform_history(subjects, output_json='transform_history.json'):
         json.dump(history, f, indent=4)
     return output_json
 
-def save_history_to_json(history_dict, output_json='transform_history.json'):
+def save_history_to_jsons(history_dict, output_json='transform_history.json'):
     """Saves the transformation history dictionary to a JSON file."""
     with open(output_json, 'w') as f:
         json.dump(history_dict, f, indent=4, default=str) #use default=str to handle non-serializable objects.
         return output_json
 
 
-def degrade_mri(input_path, output_path, pipeline=None):
+def save_history_to_json(history_dict, output_json='transform_history.json'):
+    """Updates the transformation history JSON file with new key-value pairs without overwriting the entire dictionary."""
     
-    os.makedirs(output_path, exist_ok=True)
+    # Load existing data if the file exists
+    if os.path.exists(output_json):
+        with open(output_json, 'r') as f:
+            try:
+                existing_data = json.load(f)
+                if not isinstance(existing_data, dict):  # Ensure it's a dictionary
+                    raise ValueError("Existing JSON file is not a dictionary!")
+            except (json.JSONDecodeError, ValueError):
+                existing_data = {}  # Default to empty dictionary if file is corrupted or not a dictionary
+    else:
+        existing_data = {}
+
+    # Merge new history entries into existing dictionary
+    existing_data.update(history_dict)
+
+    # Write back to JSON file
+    with open(output_json, 'w') as f:
+        json.dump(existing_data, f, indent=4, default=str)  # Pretty print for readability
+    
+    return output_json
+
+
+
+
+def degrade_mri(input_path, output_path, pipeline=None):
+    #print('output_path:', output_path)
+    
+    Path('outputs/').mkdir(exist_ok=True)
+    
+    if pipeline is None:
+        img_basename = output_path.split('/')[-1].replace('.nii.gz', '')
+    else:
+        img_basename = os.path.basename(input_path)
+        
     
     try:
         nifti_img = nib.load(input_path)
@@ -128,7 +179,7 @@ def degrade_mri(input_path, output_path, pipeline=None):
             image=tio.ScalarImage(tensor=image_data, 
                                   affine=affine, 
                                   type=tio.INTENSITY)) #Include affine
-        img_basename = os.path.basename(input_path)
+        
     except FileNotFoundError:
         print(f"Error: File not found at {input_path}. Please ensure the path is correct.")
         exit()  # Exit if file is not found.
@@ -143,9 +194,15 @@ def degrade_mri(input_path, output_path, pipeline=None):
     img_basename: [str(t) for t in degraded_mri.history]
     }
     
-    history_path = output_path.replace('.nii.gz', '_history.json')
-    save_history_to_json(history_dict, history_path)
     
-    degraded_mri.save(output_path)
+    history_dict = {img_basename: []}
+
+    history_path = output_path.replace('.nii.gz', '_history.json')
+    save_history_to_json(history_dict, os.path.join('outputs', '_history.json'))
+    
+    if pipeline is not None:
+        degraded_mri.image.save(os.path.join('outputs', output_path))
+    else:
+        degraded_mri.save(os.path.join('outputs', img_basename))
     
     return degraded_mri, history_path
