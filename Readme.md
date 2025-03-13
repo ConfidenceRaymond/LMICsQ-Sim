@@ -13,6 +13,7 @@ Simulate low-quality MRI scans from LMICs with `torchio`. Randomly resamples to 
 git clone https://github.com/yourusername/LowQualityMRISimulation.git
 cd LMICsQ-Sim
 pip install -r requirements.txt
+```
 
 
 ## Example Usage from Terminal
