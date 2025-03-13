@@ -108,17 +108,27 @@ def save_transform_history(subjects, output_json='transform_history.json'):
         json.dump(history, f, indent=4)
     return output_json
 
+def save_history_to_json(history_dict, output_json='transform_history.json'):
+    """Saves the transformation history dictionary to a JSON file."""
+    with open(output_json, 'w') as f:
+        json.dump(history_dict, f, indent=4, default=str) #use default=str to handle non-serializable objects.
+        return output_json
+
+
 def degrade_mri(input_path, output_path, pipeline=None):
     
     os.makedirs(output_path, exist_ok=True)
     
     try:
         nifti_img = nib.load(input_path)
-        original_data = nifti_img.get_fdata()
-        mri = tio.Subject(
-            img = tio.ScalarImage(tensor=original_data[..., np.newaxis]),
-        )
-        
+        image_data = nifti_img.get_fdata()
+        affine = nifti_img.affine
+        image_data = torch.from_numpy(image_data).float().unsqueeze(0)
+        subject = tio.Subject(
+            image=tio.ScalarImage(tensor=image_data, 
+                                  affine=affine, 
+                                  type=tio.INTENSITY)) #Include affine
+        img_basename = os.path.basename(input_path)
     except FileNotFoundError:
         print(f"Error: File not found at {input_path}. Please ensure the path is correct.")
         exit()  # Exit if file is not found.
@@ -127,10 +137,15 @@ def degrade_mri(input_path, output_path, pipeline=None):
         exit()
         
     pipeline = pipeline or get_degradation_pipeline()
-    degraded_mri = pipeline(mri)
-    #mri = tio.SubjectsDataset(mri, transform=get_degradation_pipeline)
-    history_path = output_path.replace('.nii', '_history.json')
-    save_transform_history(mri, history_path)
+    degraded_mri = pipeline(subject)
+    
+    history_dict = {
+    img_basename: [str(t) for t in degraded_mri.history]
+    }
+    
+    history_path = output_path.replace('.nii.gz', '_history.json')
+    save_history_to_json(history_dict, history_path)
+    
     degraded_mri.save(output_path)
     
     return degraded_mri, history_path

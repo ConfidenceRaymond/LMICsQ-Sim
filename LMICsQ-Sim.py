@@ -1,7 +1,7 @@
 import argparse
 import os
 import torchio as tio
-from degrade_mri import get_degradation_pipeline, save_transform_history, degrade_mri
+from degrade_mri import get_degradation_pipeline, save_history_to_json, degrade_mri
 import glob
 
 def degrade_single(input_path, output_path):
@@ -21,7 +21,7 @@ def degrade_single(input_path, output_path):
     
     # Save transform history
     history_path = output_path.replace('.nii', '_history.json')
-    save_transform_history([degraded_mri], history_path)
+    save_history_to_json([degraded_mri], history_path)
     print(f"Degraded MRI saved to {output_path}")
     print(f"Transform history saved to {history_path}")
 
@@ -38,12 +38,11 @@ def degrade_batch(input_dir, output_dir):
         filename = os.path.basename(input_path)
         output_path = os.path.join(output_dir, f"degraded_{filename}")
         degraded_mri, _ = degrade_mri(input_path, output_path, pipeline)
-        degraded_mris.append(degraded_mri)
         print(f"Degraded MRI saved to {output_path}")
     
-    history_path = os.path.join(output_dir, 'batch_transform_history.json')
-    save_transform_history(degraded_mris, history_path)
-    print(f"Batch transform history saved to {history_path}")
+    # history_path = os.path.join(output_dir, 'batch_transform_history.json')
+    # save_history_to_json(degraded_mris, history_path)
+    # print(f"Batch transform history saved to {history_path}")
 
 def main():
     parser = argparse.ArgumentParser(description="Degrade MRI scans to simulate low-quality LMIC images.")

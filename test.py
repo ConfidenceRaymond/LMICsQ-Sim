@@ -21,20 +21,10 @@ axes = axes.flatten()
 show_slice(mri, 'Original', axes[0])
 
 
-transform = tio.Compose(
-    (
-        tio.ToCanonical(),
-        tio.RandomGamma(p=0.75),
-        tio.RandomBlur(p=0.5),
-        tio.RandomFlip(),
-        tio.RescaleIntensity(out_min_max=(-1, 1)),
-    )
-)
-
 individual_transforms = get_individual_transforms()
 transformed_mris = []
-for i, (name, transform1) in enumerate(individual_transforms.items(), 1):
-    print(name, transform1)
+for i, (name, transform) in enumerate(individual_transforms.items(), 1):
+    print(name, transform)
     degraded_mri, _ = degrade_mri(mri_path, f'{name}_degraded.nii', transform)
     show_slice(degraded_mri, name, axes[i])
     transformed_mris.append(degraded_mri)
