@@ -4,7 +4,6 @@ import nibabel as nib
 import numpy as np
 from pathlib import Path
 import json
-from torchio.utils import history_collate
 
 # Custom Transforms
 class RandomCrop(tio.Transform):
@@ -32,11 +31,9 @@ class RandomCrop(tio.Transform):
             return tio.Crop(cropping)(subject)
         return subject
             
-    
-    
 
 class RandomPatchDegradation(tio.Transform):
-    def __init__(self, num_patches=5, intensity_range=(0.1, 0.3), **kwargs):
+    def __init__(self, num_patches=5, intensity_range=(0.7, 0.9), **kwargs):
         super().__init__(**kwargs)
         self.num_patches, self.intensity_range = num_patches, intensity_range
 
@@ -51,9 +48,10 @@ class RandomPatchDegradation(tio.Transform):
             h_end = min(h_start + patch_size, h)
             w_end = min(w_start + patch_size, w)
             data[:, d_start:d_end, h_start:h_end, w_start:w_end] += intensity
-        #data = torch.clamp(data, 0, 1)
+        data = torch.clamp(data, 0, 1)
         subject.get_first_image().data = data
         return subject
+
 
 class SparseSpatialTransform(tio.Transform):
     def __init__(self, p_apply=0.75, max_effects=3, weights=(0.3, 0.5, 0.2), **kwargs):
@@ -85,6 +83,10 @@ tio.transforms.__dict__["SparseSpatialTransform"] = SparseSpatialTransform
 tio.transforms.RandomCrop = RandomCrop
 tio.transforms.__dict__["RandomCrop"] = RandomCrop
 
+# Will try this out on segmentation task
+tio.transforms.RandomPatchDegradation = RandomPatchDegradation
+tio.transforms.__dict__["RandomPatchDegradation"] = RandomPatchDegradation
+
 # Core Functions
 def get_degradation_pipeline():
     return tio.Compose([
@@ -97,7 +99,7 @@ def get_degradation_pipeline():
             tio.RandomGhosting(intensity=(lambda: np.random.uniform(0.1, 0.3))(), axes=(lambda: np.random.randint(0, 3))()): 2
         }, p=0.5),
         RandomCrop(p=0.1)  # Uniform crop for limited FOV
-        #RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)): 1
+        #RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)): #Use for segmentation masks
     ])
 
 
@@ -114,8 +116,8 @@ def get_individual_transforms():
         "Motion": tio.RandomMotion(degrees=(lambda: np.random.uniform(3, 7))(), translation=(lambda: np.random.uniform(3, 7))(), num_transforms=2),
         "Spike": tio.RandomSpike(num_spikes=(lambda: np.random.randint(5, 15))(), intensity=(lambda: np.random.uniform(0.1, 0.3))()),
         "Ghosting": tio.RandomGhosting(intensity=(lambda: np.random.uniform(0.1, 0.3))(), axes=(lambda: np.random.randint(0, 3))()),
-        "Crop": RandomCrop(p=1)  # Uniform crop for limited FOV
-        #"PatchDegradation": RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3))
+        "RandomCrop": RandomCrop(p=1),  # Uniform crop for limited FOV
+        #"PatchDegradation": RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)) #Use for segmentation masks
     }
 
 def save_transform_history(subjects, output_json='transform_history.json'):
