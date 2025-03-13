@@ -15,7 +15,7 @@ cd LMICsQ-Sim
 pip install -r requirements.txt
 
 
-### Example Usage from Terminal
+## Example Usage from Terminal
 **Single Image**:
 Single Image:
 Command: python cli_degrade.py -i input.nii -o degraded.nii
