@@ -21,13 +21,15 @@ axes = axes.flatten()
 show_slice(mri, 'Original', axes[0])
 
 
-individual_transforms = get_individual_transforms()
-transformed_mris = []
-for i, (name, transform) in enumerate(individual_transforms.items(), 1):
-    # print(name, transform)
-    degraded_mri, _ = degrade_mri(mri_path, f'{name}_degraded.nii.gz', transform)
-    show_slice(degraded_mri.image, name, axes[i])
-    transformed_mris.append(degraded_mri)
+# individual_transforms = get_individual_transforms()
+# for i, (name, transform) in enumerate(individual_transforms.items(), 1):
+#     # print(name, transform)
+#     degraded_mri, _ = degrade_mri(mri_path, f'{name}_degraded.nii.gz', transform)
+#     show_slice(degraded_mri.image, name, axes[i])
+
+# Full pipeline
+pipeline = get_degradation_pipeline()
+full_degraded, full_history_path = degrade_mri(mri_path, 'full_degraded.nii', pipeline)
     
 # pipeline = get_degradation_pipeline()
 # full_degraded, full_history_path = degrade_mri(mri_path, 'full_degraded.nii', pipeline)

@@ -193,9 +193,6 @@ def degrade_mri(input_path, output_path, pipeline=None):
     history_dict = {
     img_basename: [str(t) for t in degraded_mri.history]
     }
-    
-    
-    history_dict = {img_basename: []}
 
     history_path = output_path.replace('.nii.gz', '_history.json')
     save_history_to_json(history_dict, os.path.join('outputs', '_history.json'))
