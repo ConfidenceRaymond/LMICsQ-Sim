@@ -105,22 +105,20 @@ tio.transforms.__dict__["RandomPatchDegradation"] = RandomPatchDegradation
 def get_degradation_pipeline():
     return tio.Compose([
         RandomResample(),
+        tio.RandomBiasField(coefficients=(lambda: np.random.uniform(0.3, 0.7))(), p=0.3),
         tio.OneOf({                            # Noise Artifacts
             RandomRicianNoise(std=(0.05, 0.15)): 2,
             tio.RandomNoise(mean=0, std=(lambda: np.random.uniform(0.05, 0.15))()): 1
         }, p=0.2),
-        tio.RandomBiasField(coefficients=(lambda: np.random.uniform(0.3, 0.7))(), p=0.3),
-        tio.RandomSpike(num_spikes=(lambda: np.random.randint(5, 15))(), intensity=(lambda: np.random.uniform(0.1, 0.3))(), p=0.05),
-        tio.RandomGhosting(intensity=(lambda: np.random.uniform(0.1, 0.3))(), axes=(lambda: np.random.randint(0, 3))(), p=0.01),
         tio.OneOf({
             tio.RandomMotion(degrees=(lambda: np.random.uniform(3, 7))(), translation=(lambda: np.random.uniform(3, 7))(), num_transforms=2): 2,
             tio.RandomBlur(std=(lambda: np.random.uniform(0.3, 0.7))(), p=0.3): 1,
         }, p=0.1),
+        tio.RandomSpike(num_spikes=(lambda: np.random.randint(5, 15))(), intensity=(lambda: np.random.uniform(0.1, 0.3))(), p=0.05),
+        tio.RandomGhosting(intensity=(lambda: np.random.uniform(0.1, 0.3))(), axes=(lambda: np.random.randint(0, 3))(), p=0.01),
         RandomCrop(p=0.1)  # Uniform crop for limited FOV
     ])
     #RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)): #Use for segmentation masks
-
-
 
 
 def get_individual_transforms():
