@@ -90,26 +90,38 @@ The simulator provides a command-line interface for degrading MRI datasets, supp
 
 
 
-## Example Usage from Terminal
-**Single Image**:
-Single Image:
-Command: python cli_degrade.py -i input.nii -o degraded.nii
-Loads input.nii, applies the degradation pipeline, saves to degraded.nii, and writes transform history to degraded_history.json.
+## Sample Results
+This section showcases an example of the degradation process, comparing an original MRI scan with its degraded counterpart and providing the associated transform history.
 
+**Original Image**
+- **File:** `Sample_Data/MNI152_T1_2mm_brain.nii.gz`
+- **Visualization:** 
+![Original MRI](https://github.com/ConfidenceRaymond/LMICsQ-Sim/blob/main/Sample_Data/original_img.png)
 
-```bash
-python LMICsQ-Sim.py -i sample_data/high_quality_mri.nii.gz -o output/degraded.nii --single
+**Degraded Image**
+- **File:** `outputs/full_degraded.nii`
+- **Visualization:** 
+![Degraded MRI](https://github.com/ConfidenceRaymond/LMICsQ-Sim/blob/main/Sample_Data/full_degraded.png)
 
-Output: `output/degraded_mri1.nii.gz`, and `output/degraded_history.json`.
+**Transform History**
+- **File:** `output/_history.json`
+- **Sample Content:** 
+  ```json
+  {
+    "MNI152_T1_2mm_brain.nii.gz": [
+        "Resample(target=3, image_interpolation=linear, pre_affine_name=None, scalars_only=False)",
+        "RandomResample()",
+    ]
+  }
+  ```
+- **Description**: The JSON log details the sequence of transforms applied, for this instance a voxel resampling to 3mm was applied.
 
-**Batch Image**:
-Command: python cli_degrade.py -i input_dir -o output_dir --batch
-Processes all .nii or .nii.gz files in input_dir, saves degraded versions to output_dir (e.g., degraded_file1.nii), and writes a single batch_transform_history.json for all images.
+## Sample Results
+This project utilizes `torchio`, an open-source Python library for medical image processing. For more information and additional examples, refer to:
+- **Citation:** Pérez-García, F., et al. "TorchIO: a Python library for efficient loading, preprocessing, augmentation and patch-based sampling of medical images in deep learning." Computer Methods and Programs in Biomedicine, 2021.
+- **GitHub Repository:** [https://github.com/fepegar/torchio](https://github.com/fepegar/torchio)
+- **Notebook:** Explore the [TorchIO Jupyter Notebook](https://github.com/fepegar/torchio) for comprehensive examples of image transformations and usage.
 
-python LMICsQ-Sim.py -i sample_data -o output_batch --batch
-
-Assuming `sample_data` has `mri1.nii.gz` and `mri2.nii.gz`
-Output: `output_batch/degraded_mri1.nii.gz`, `output_batch/degraded_mri2.nii.gz`, and `output_batch/batch_transform_history.json`.
 
 
 
