@@ -1,5 +1,7 @@
+<div style="text-align: center;">
 # LMICsQ-Sim: MRI Degradation Simulator for Low-Resource Imaging
-LMICsQ-Sim Demo [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ConfidenceRaymond/LMICsQ-Sim/blob/main/Demo.ipynb) 
+LMICsQ-Sim Demo [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ConfidenceRaymond/LMICsQ-Sim/blob/main/Demo.ipynb)
+</div>
 
 This pipeline leverages `torchio` to degrade high-quality MRI scans, replicating the imaging artifacts and limitations prevalent in low- and middle-income country (LMIC) settings. It simulates the effects of outdated hardware, suboptimal calibration, and operational constraints, enabling robust testing of image analysis algorithms under realistic conditions. Below are the implemented degradation transforms:
 
@@ -97,12 +99,18 @@ This section showcases an example of the degradation process, comparing an origi
 **Original Image**
 - **File:** `Sample_Data/MNI152_T1_2mm_brain.nii.gz`
 - **Visualization:** 
+<div style="text-align: center;">
+_High-resolution MRI scan prior to degradation._   
 ![Original MRI](https://github.com/ConfidenceRaymond/LMICsQ-Sim/blob/main/Sample_Data/original_img.png)
+</div>
 
 **Degraded Image**
 - **File:** `outputs/full_degraded.nii`
 - **Visualization:** 
+<div style="text-align: center;">
+_Degraded MRI scan exhibiting low-resource imaging artifacts._
 ![Degraded MRI](https://github.com/ConfidenceRaymond/LMICsQ-Sim/blob/main/Sample_Data/full_degraded.png)
+</div>
 
 **Transform History**
 - **File:** `output/_history.json`
@@ -122,7 +130,9 @@ This project utilizes `torchio`, an open-source Python library for medical image
 - **Citation:** Pérez-García, F., et al. "TorchIO: a Python library for efficient loading, preprocessing, augmentation and patch-based sampling of medical images in deep learning." Computer Methods and Programs in Biomedicine, 2021.
 - **GitHub Repository:** [https://github.com/fepegar/torchio](https://github.com/fepegar/torchio)
 - **Notebook:** Explore the [TorchIO Jupyter Notebook](https://github.com/TorchIO-project/torchio/blob/main/tutorials/README.md) for comprehensive examples of image transformations and usage. 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/TorchIO-project/torchio-notebooks/blob/main/notebooks/Data_preprocessing_and_augmentation_using_TorchIO_a_tutorial.ipynb) 
+<div style="text-align: center;">
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/TorchIO-project/torchio-notebooks/blob/main/notebooks/Data_preprocessing_and_augmentation_using_TorchIO_a_tutorial.ipynb)
+</div>
 
 
 
