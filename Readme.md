@@ -83,11 +83,10 @@ The simulator provides a command-line interface for degrading MRI datasets, supp
   ```bash
   python LMICsQ-Sim.py -i sample_data -o output_batch --batch  
   ```
-- `#### Example Input`: 
-    - `sample_data/mri1.nii.gz`, `sample_data/mri2.nii.gz`
-- `output_batch/degraded_mri1.nii.gz`: Degraded version of `sample_data/mri1.nii.gz`.
-- `output_batch/degraded_mri2.nii.gz`: Degraded version of `sample_data/mri2.nii.gz`.
-- `output_batch/batch_transform_history.json`: Aggregated transform history for all processed images in JSON format.
+#### Input/Output: 
+- `outputs/degraded_mri1.nii.gz`: Degraded version of `sample_data/mri1.nii.gz`.
+- `outputs/degraded_mri2.nii.gz`: Degraded version of `sample_data/mri2.nii.gz`.
+- `outputs/batch_transform_history.json`: Aggregated transform history for all processed images in JSON format.
 
 
 
