@@ -1,7 +1,5 @@
-<div style="text-align: center;">
 # LMICsQ-Sim: MRI Degradation Simulator for Low-Resource Imaging
 LMICsQ-Sim Demo [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ConfidenceRaymond/LMICsQ-Sim/blob/main/Demo.ipynb)
-</div>
 
 This pipeline leverages `torchio` to degrade high-quality MRI scans, replicating the imaging artifacts and limitations prevalent in low- and middle-income country (LMIC) settings. It simulates the effects of outdated hardware, suboptimal calibration, and operational constraints, enabling robust testing of image analysis algorithms under realistic conditions. Below are the implemented degradation transforms:
 
@@ -101,16 +99,18 @@ This section showcases an example of the degradation process, comparing an origi
 - **Visualization:** 
 <div style="text-align: center;">
 _High-resolution MRI scan prior to degradation._   
-![Original MRI](https://github.com/ConfidenceRaymond/LMICsQ-Sim/blob/main/Sample_Data/original_img.png)
 </div>
+![Original MRI](https://github.com/ConfidenceRaymond/LMICsQ-Sim/blob/main/Sample_Data/original_img.png)
+
 
 **Degraded Image**
 - **File:** `outputs/full_degraded.nii`
 - **Visualization:** 
 <div style="text-align: center;">
 _Degraded MRI scan exhibiting low-resource imaging artifacts._
-![Degraded MRI](https://github.com/ConfidenceRaymond/LMICsQ-Sim/blob/main/Sample_Data/full_degraded.png)
 </div>
+![Degraded MRI](https://github.com/ConfidenceRaymond/LMICsQ-Sim/blob/main/Sample_Data/full_degraded.png)
+
 
 **Transform History**
 - **File:** `output/_history.json`
