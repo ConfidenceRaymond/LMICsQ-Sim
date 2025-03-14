@@ -3,6 +3,7 @@ import os
 import torchio as tio
 from degrade_mri import get_degradation_pipeline, save_history_to_json, degrade_mri
 import glob
+from tqdm import tqdm 
 
 def degrade_single(input_path, output_path):
     """Degrade a single MRI and save with transform history."""
@@ -33,11 +34,13 @@ def degrade_batch(input_dir, output_dir):
     
     os.makedirs(output_dir, exist_ok=True)
     pipeline = get_degradation_pipeline()
-    for input_path in input_files:
+    for input_path in  tqdm(input_files, desc="Degrading MRI files"):
         filename = os.path.basename(input_path)
         output_path = os.path.join(output_dir, f"degraded_{filename}")
         degraded_mri, _ = degrade_mri(input_path, output_path, pipeline)
         print(f"Degraded MRI saved to {output_path}")
+        
+    print(f"Finished processing {len(input_files)} MRI files.")
     
     # history_path = os.path.join(output_dir, 'batch_transform_history.json')
     # save_history_to_json(degraded_mris, history_path)

@@ -6,6 +6,15 @@ from pathlib import Path
 import json
 
 # Custom Transforms
+class RandomRicianNoise(tio.RandomNoise):
+    """Apply Rician noise instead of Gaussian noise in TorchIO's RandomNoise."""
+
+    def get_noise(self, tensor: torch.Tensor, mean: float, std: float) -> torch.Tensor:
+        """Generate Rician noise instead of Gaussian noise."""
+        noise_real = torch.randn_like(tensor) * std + mean
+        noise_imag = torch.randn_like(tensor) * std + mean
+        return torch.sqrt((tensor + noise_real) ** 2 + noise_imag ** 2)
+
 class RandomCrop(tio.Transform):
     def __init__(self, crop_percentage_range=(0.2, 0.5), min_fov_percentage=0.5, p=0.1, **kwargs):
         super().__init__(**kwargs)
@@ -60,7 +69,7 @@ class SparseSpatialTransform(tio.Transform):
         self.weights = weights / np.sum(weights)
         self.effects = [
             tio.RandomNoise(mean=0, std=(lambda: np.random.uniform(0.05, 0.15))()),  # RandomNoise -0.2, RandomAnisotropy -0.5 RandomBiasField - 0.2
-            tio.RandomAnisotropy(axes=(0, 1, 2), downsampling=(2, 5)),
+            tio.RandomAnisotropy(axes=(0, 1, 2), downsampling=(2, 6)),
             tio.RandomBiasField(coefficients=(lambda: np.random.uniform(0.3, 0.7))())
         ]
 
@@ -70,6 +79,7 @@ class SparseSpatialTransform(tio.Transform):
             chosen_indices = np.random.choice([0, 1, 2], size=num_effects, replace=False)
             for idx in chosen_indices:
                 subject = self.effects[idx](subject)
+        #SparseSpatialTransform(p_apply=0.6, max_effects=3, weights=(0.2, 0.5, 0.3)),  ## RandomNoise -0.2, RandomAnisotropy -0.5 RandomBiasField - 0.2
         return subject
 
 class RandomResample(tio.Transform):
@@ -77,11 +87,15 @@ class RandomResample(tio.Transform):
         voxel_size = np.random.choice([2, 3])
         return tio.Resample(voxel_size)(subject)
     
-## Explicitly register costum tio transforms
+## Explicitly register custom tio transforms
 tio.transforms.SparseSpatialTransform = SparseSpatialTransform
 tio.transforms.__dict__["SparseSpatialTransform"] = SparseSpatialTransform
+tio.transforms.RandomRicianNoise = RandomRicianNoise
+tio.transforms.__dict__["RandomRicianNoise"] = RandomRicianNoise
 tio.transforms.RandomCrop = RandomCrop
 tio.transforms.__dict__["RandomCrop"] = RandomCrop
+
+
 
 # Will try this out on segmentation task
 tio.transforms.RandomPatchDegradation = RandomPatchDegradation
@@ -91,16 +105,20 @@ tio.transforms.__dict__["RandomPatchDegradation"] = RandomPatchDegradation
 def get_degradation_pipeline():
     return tio.Compose([
         RandomResample(),
-        SparseSpatialTransform(p_apply=0.6, max_effects=3, weights=(0.2, 0.5, 0.3)),  ## RandomNoise -0.2, RandomAnisotropy -0.5 RandomBiasField - 0.2
-        tio.RandomBlur(std=(lambda: np.random.uniform(0.3, 0.7))(), p=0.3),
+        tio.OneOf({                            # Noise Artifacts
+            RandomRicianNoise(std=(0.05, 0.15)): 2,
+            tio.RandomNoise(mean=0, std=(lambda: np.random.uniform(0.05, 0.15))()): 1
+        }, p=0.2),
+        tio.RandomBiasField(coefficients=(lambda: np.random.uniform(0.3, 0.7))(), p=0.3),
+        tio.RandomSpike(num_spikes=(lambda: np.random.randint(5, 15))(), intensity=(lambda: np.random.uniform(0.1, 0.3))(), p=0.05),
+        tio.RandomGhosting(intensity=(lambda: np.random.uniform(0.1, 0.3))(), axes=(lambda: np.random.randint(0, 3))(), p=0.01),
         tio.OneOf({
             tio.RandomMotion(degrees=(lambda: np.random.uniform(3, 7))(), translation=(lambda: np.random.uniform(3, 7))(), num_transforms=2): 2,
-            tio.RandomSpike(num_spikes=(lambda: np.random.randint(5, 15))(), intensity=(lambda: np.random.uniform(0.1, 0.3))()): 1,
-            tio.RandomGhosting(intensity=(lambda: np.random.uniform(0.1, 0.3))(), axes=(lambda: np.random.randint(0, 3))()): 2
-        }, p=0.5),
+            tio.RandomBlur(std=(lambda: np.random.uniform(0.3, 0.7))(), p=0.3): 1,
+        }, p=0.1),
         RandomCrop(p=0.1)  # Uniform crop for limited FOV
-        #RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)): #Use for segmentation masks
     ])
+    #RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)): #Use for segmentation masks
 
 
 
@@ -109,6 +127,7 @@ def get_individual_transforms():
     return {
         "Resample": RandomResample(),
         "SparseSpatial": SparseSpatialTransform(p_apply=0.6, max_effects=3, weights=(0.2, 0.5, 0.3)),
+        "Rician Noise": RandomRicianNoise(std=(0.05, 0.15)),
         "Noise": tio.RandomNoise(mean=0, std=(lambda: np.random.uniform(0.05, 0.15))()),
         "Anisotropy": tio.RandomAnisotropy(axes=(0, 1, 2), downsampling=(2, 5)),
         "BiasField": tio.RandomBiasField(coefficients=(lambda: np.random.uniform(0.3, 0.7))()),
