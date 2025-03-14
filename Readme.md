@@ -120,7 +120,8 @@ This section showcases an example of the degradation process, comparing an origi
 This project utilizes `torchio`, an open-source Python library for medical image processing. For more information and additional examples, refer to:
 - **Citation:** Pérez-García, F., et al. "TorchIO: a Python library for efficient loading, preprocessing, augmentation and patch-based sampling of medical images in deep learning." Computer Methods and Programs in Biomedicine, 2021.
 - **GitHub Repository:** [https://github.com/fepegar/torchio](https://github.com/fepegar/torchio)
-- **Notebook:** Explore the [TorchIO Jupyter Notebook](https://github.com/fepegar/torchio) for comprehensive examples of image transformations and usage.
+- **Notebook:** Explore the [TorchIO Jupyter Notebook](https://github.com/TorchIO-project/torchio/blob/main/tutorials/README.md) for comprehensive examples of image transformations and usage. 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/TorchIO-project/torchio-notebooks/blob/main/notebooks/Data_preprocessing_and_augmentation_using_TorchIO_a_tutorial.ipynb) 
 
 
 
