@@ -56,10 +56,39 @@ tio.Compose([
 
 ## Setup
 ```bash
-git clone https://github.com/yourusername/LowQualityMRISimulation.git
+git clone https://github.com/ConfidenceRaymond/LMICsQ-Sim.git
 cd LMICsQ-Sim
 pip install -r requirements.txt
 ```
+
+
+## Example Usage from Terminal
+
+The simulator provides a command-line interface for degrading MRI datasets, supporting both single-image and batch processing workflows. Each operation produces degraded images alongside transform history logs, ensuring traceability and reproducibility for clinical and research applications.
+
+### Single Image Degradation
+- **Description**: Degrades an individual MRI scan using the full degradation pipeline, simulating low-resource imaging conditions. Reads `input.nii.gz`, applies the degradation transforms, and writes the output to `degraded.nii`. A detailed transform history is saved as `degraded_history.json`.
+- **Command**:
+  ```bash
+  python LMICsQ-Sim.py -i sample_data/high_quality_mri.nii.gz -o output/degraded.nii --single
+  ```
+
+#### Output Files
+- `outputs/degraded.nii.gz`: The degraded MRI scan.
+- `outputs/_history.json`: JSON log detailing the applied transforms.
+
+### Batch Image Degradation
+- **Description**: Processes multiple MRI scans within a directory, applying the degradation pipeline to each for efficient dataset preparation. Identifies all `.nii` or `.nii.gz` files in `input_dir`, applies the degradation pipeline to each, and saves results in output_dir (e.g., `degraded_file1.nii.gz`). A consolidated transform history is written to `batch_transform_history.json`.
+- **Command**:
+  ```bash
+  python LMICsQ-Sim.py -i sample_data -o output_batch --batch  
+  ```
+- `#### Example Input`: 
+    - `sample_data/mri1.nii.gz`, `sample_data/mri2.nii.gz`
+- `output_batch/degraded_mri1.nii.gz`: Degraded version of `sample_data/mri1.nii.gz`.
+- `output_batch/degraded_mri2.nii.gz`: Degraded version of `sample_data/mri2.nii.gz`.
+- `output_batch/batch_transform_history.json`: Aggregated transform history for all processed images in JSON format.
+
 
 
 ## Example Usage from Terminal
