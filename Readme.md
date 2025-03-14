@@ -1,4 +1,4 @@
-# MRI Degradation Simulator for Low-Resource Imaging
+# LMICsQ-Sim: MRI Degradation Simulator for Low-Resource Imaging
 
 This pipeline leverages `torchio` to degrade high-quality MRI scans, replicating the imaging artifacts and limitations prevalent in low- and middle-income country (LMIC) settings. It simulates the effects of outdated hardware, suboptimal calibration, and operational constraints, enabling robust testing of image analysis algorithms under realistic conditions. Below are the implemented degradation transforms:
 
