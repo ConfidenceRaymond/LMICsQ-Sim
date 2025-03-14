@@ -1,5 +1,5 @@
 # LMICsQ-Sim: MRI Degradation Simulator for Low-Resource Imaging
-LMICsQ-Sim Demo |--------------| [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ConfidenceRaymond/LMICsQ-Sim/blob/main/Demo.ipynb) 
+LMICsQ-Sim Demo [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ConfidenceRaymond/LMICsQ-Sim/blob/main/Demo.ipynb) 
 
 This pipeline leverages `torchio` to degrade high-quality MRI scans, replicating the imaging artifacts and limitations prevalent in low- and middle-income country (LMIC) settings. It simulates the effects of outdated hardware, suboptimal calibration, and operational constraints, enabling robust testing of image analysis algorithms under realistic conditions. Below are the implemented degradation transforms:
 
