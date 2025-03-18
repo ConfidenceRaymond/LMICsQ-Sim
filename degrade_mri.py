@@ -137,18 +137,6 @@ def get_individual_transforms():
         #"PatchDegradation": RandomPatchDegradation(num_patches=5, intensity_range=(0.1, 0.3)) #Use for segmentation masks
     }
 
-def save_transform_history(subjects, output_json='transform_history.json'):
-    history = subjects.get_composed_history()
-    print(history)
-    with open(output_json, 'w') as f:
-        json.dump(history, f, indent=4)
-    return output_json
-
-def save_history_to_jsons(history_dict, output_json='transform_history.json'):
-    """Saves the transformation history dictionary to a JSON file."""
-    with open(output_json, 'w') as f:
-        json.dump(history_dict, f, indent=4, default=str) #use default=str to handle non-serializable objects.
-        return output_json
 
 
 def save_history_to_json(history_dict, output_json='transform_history.json'):
@@ -175,18 +163,23 @@ def save_history_to_json(history_dict, output_json='transform_history.json'):
     
     return output_json
 
+def remove_nifti_extensions(file_path):
+    """Removes .nii or .nii.gz extensions from a file path."""
+    base_name = os.path.basename(file_path)
+
+    if base_name.endswith(".nii.gz"):
+        return os.path.splitext(os.path.splitext(base_name)[0])[0] # Remove .gz and .nii
+    elif base_name.endswith(".nii"):
+        return os.path.splitext(base_name)[0] # Remove .nii
+    else:
+        raise FileNotFoundError(f"{base_name} is not a NIfTI file.")
 
 
-
-def degrade_mri(input_path, output_path, pipeline=None):
-    #print('output_path:', output_path)
+def degrade_mri(input_path, output_path, history_path, pipeline=None):
     
     Path('outputs/').mkdir(exist_ok=True)
-    
-    if pipeline is None:
-        img_basename = output_path.split('/')[-1].replace('.nii.gz', '')
-    else:
-        img_basename = os.path.basename(input_path)
+
+    img_basename = remove_nifti_extensions(input_path)
         
     
     try:
@@ -213,12 +206,11 @@ def degrade_mri(input_path, output_path, pipeline=None):
     img_basename: [str(t) for t in degraded_mri.history]
     }
 
-    history_path = output_path.replace('.nii.gz', '_history.json')
-    save_history_to_json(history_dict, os.path.join('outputs', '_history.json'))
+    save_history_to_json(history_dict, history_path)
     
     if pipeline is not None:
-        degraded_mri.image.save(os.path.join('outputs', output_path))
+        degraded_mri.image.save(os.path.join('outputs', os.path.basename(input_path)))
     else:
-        degraded_mri.save(os.path.join('outputs', img_basename))
+        degraded_mri.save(os.path.join('outputs', os.path.basename(input_path)))
     
     return degraded_mri, history_path
