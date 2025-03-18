@@ -49,16 +49,19 @@ def main():
     parser = argparse.ArgumentParser(description="Degrade MRI scans to simulate low-quality LMIC images.")
     parser.add_argument('-i', '--input', required=True, help="Input NIfTI file or directory")
     parser.add_argument('-o', '--output', type=str, default="outputs/", required=False, help="Output file path (single) or directory (batch)")
-    parser.add_argument('--batch', action='store_true', help="Process as batch")
-    
+    parser.add_argument('--batch', action='store_true', help="Process as batch") 
+    parser.add_argument('--single', action='store_true', help="Process a single") 
+
     args = parser.parse_args()
     
     if args.batch:
         degrade_batch(args.input, args.output)
-    else:
+    elif args.single:
         degrade_single(args.input, args.output)
         print(f"Degraded MRI saved to {args.output}")
         print(f"Transform history saved to {args.output.replace('.nii', '_history.json')}")
+    else:
+        raise ValueError("Please specify --batch or --single to process MRI files.")
 
 if __name__ == "__main__":
     main()
